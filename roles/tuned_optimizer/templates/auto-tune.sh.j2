@@ -4,6 +4,34 @@
 
 set -e
 
+# Function to detect if system is running on a Virtual Machine
+is_virtual_machine() {
+    if systemd-detect-virt -q; then
+        echo "Virtual Machine detected."
+        return 0
+    else
+        echo "Bare-metal detected."
+        return 1
+    fi
+}
+
+# Function to apply Bare-Metal specific tuning (CPU governor & I/O scheduler)
+apply_baremetal_tuning() {
+    echo "Applying Bare-Metal specific optimizations..."
+
+    # Set CPU governor to 'performance' for each CPU
+    for CPU in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do
+        echo performance | sudo tee "$CPU" > /dev/null
+    done
+    echo "CPU governor set to performance."
+
+    # Set I/O scheduler to 'mq-deadline' for each block device (e.g., sd*, nvme*)
+    for DEVICE in $(ls /sys/block/ | grep -E 'sd|nvme'); do
+        echo mq-deadline | sudo tee /sys/block/"$DEVICE"/queue/scheduler > /dev/null
+    done
+    echo "I/O scheduler set to mq-deadline for applicable devices."
+}
+
 # Function to check active Tuned profile and applied sysctl settings
 check_tuned_settings() {
     echo "Checking Tuned active profile and applied sysctl settings..."
@@ -57,7 +85,7 @@ EOL
     echo "Service-specific tuning applied."
 }
 
-# Function to generate sysctl configuration dynamically
+# Function to generate sysctl configuration dynamically based on active services
 generate_sysctl_config() {
     CONFIG=""
     for SERVICE in "$@"; do
@@ -113,6 +141,14 @@ validate_sysctl_changes() {
 }
 
 # Main execution
+
+# First, determine if the system is running on a Virtual Machine or on Bare-Metal
+if is_virtual_machine; then
+    echo "Skipping Bare-Metal specific tuning on Virtual Machine."
+else
+    apply_baremetal_tuning
+fi
+
 check_tuned_settings
 check_services
 validate_sysctl_changes
