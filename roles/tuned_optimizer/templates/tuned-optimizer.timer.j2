@@ -1,0 +1,10 @@
+[Unit]
+Description=Run Tuned Optimizer Script every 24 hours
+
+[Timer]
+OnBootSec=10min
+OnUnitActiveSec=24h
+Persistent=true
+
+[Install]
+WantedBy=timers.target

@@ -5,23 +5,27 @@
 ## Overview
 **Tuned Optimizer** is an advanced **Linux performance tuning automation tool** designed for **SysAdmins & DevOps Engineers**. It dynamically optimizes system settings using **Tuned & sysctl**, ensuring optimal performance for various workloads, including **databases, web servers, virtualization, and containerized environments**.
 
-This script:
+This role:
 - **Detects running services** (e.g., Redis, PostgreSQL, OpenStack, Kubernetes, etc.) and applies **service-specific tuning**.
+- **Differentiates between Bare-Metal and Virtual Machines**, ensuring the correct optimizations are applied.
 - **Uses `Tuned` for dynamic optimizations** and **locks critical `sysctl` settings** to prevent unintended modifications.
 - **Validates `sysctl` changes** before and after applying configurations, ensuring consistency.
+- **Runs periodically via `systemd timer` to maintain optimal performance over time.**
 
 ---
 
 ## Key Features
- **Automatic service detection** – Applies optimizations based on running workloads.
- **Prevents conflicts between `Tuned` and `sysctl`** – Ensures stable and predictable performance.
- **Enterprise-ready performance tuning** – Supports **bare-metal, virtualized, and cloud environments**.
- **Optimized kernel settings for databases, networking, and containers**.
- **Live validation of system parameters** – Detects and alerts if `sysctl` changes unexpectedly.
+✅ **Automatic detection of Bare-Metal vs Virtual Machine** – Ensures correct optimizations per environment.  
+✅ **Automatic service detection** – Applies optimizations based on running workloads.  
+✅ **Prevents conflicts between `Tuned` and `sysctl`** – Ensures stable and predictable performance.  
+✅ **Enterprise-ready performance tuning** – Supports **bare-metal, virtualized, and cloud environments**.  
+✅ **Optimized kernel settings for databases, networking, and containers**.  
+✅ **Live validation of system parameters** – Detects and alerts if `sysctl` changes unexpectedly.  
+✅ **Automated execution via `systemd timer`** – Ensures periodic tuning without manual intervention.  
 
 ---
 
-## Installation & Usage
+## Installation & Usage (Ansible-Based)
 
 ### **1 Clone the repository**
 ```bash
@@ -29,16 +33,22 @@ git clone https://github.com/your-repo/tuned-optimizer.git
 cd tuned-optimizer
 ```
 
-### **2 Run the script**
+### **2 Run the Ansible Playbook**
 ```bash
-chmod +x auto-tune.sh
-./auto-tune.sh
+ansible-playbook site.yml --tags all
 ```
 
-### **3 Verify applied settings**
+🔹 **To install only `Tuned` optimizations:**  
 ```bash
-tuned-adm active
-sysctl -a | grep -E "swappiness|tcp_max_syn_backlog|netdev_max_backlog"
+ansible-playbook site.yml --tags tuned
+```
+🔹 **To install only `Netdata` monitoring:**  
+```bash
+ansible-playbook site.yml --tags netdata
+```
+🔹 **To enable periodic execution (`systemd timer`):**  
+```bash
+ansible-playbook site.yml --tags timer
 ```
 
 ---
@@ -46,32 +56,50 @@ sysctl -a | grep -E "swappiness|tcp_max_syn_backlog|netdev_max_backlog"
 ## How It Works
 | Step | Action |
 |------|--------|
-| 1 | Detects active services using `systemctl` and `pgrep`. |
-| 2 | If no critical services are found, applies **standard system tuning**. |
-| 3 | If services are detected, applies **custom `sysctl` configurations** for each workload. |
-| 4 | Checks and validates `Tuned` profiles to ensure settings match active workloads. |
-| 5 | Verifies `sysctl` settings after applying changes to prevent unintended modifications. |
+| 1 | Detects if the system is **Bare-Metal or Virtual Machine** and applies the appropriate optimizations. |
+| 2 | Scans for critical workloads (Databases, Web Servers, Virtualization, etc.) and applies **custom tuning**. |
+| 3 | Configures and validates `Tuned` profiles to match active workloads. |
+| 4 | Adjusts `sysctl` parameters dynamically and locks critical settings. |
+| 5 | Enables a `systemd timer` to **automate periodic tuning** without user intervention. |
 
 ---
 
-## Professional Monitoring with Netdata
-**If you need real-time graphical monitoring, `Netdata` is an excellent tool that provides detailed insights into `Tuned`, CPU, RAM, disk, network usage, and kernel settings.**
+## Professional Monitoring with Netdata & Manual `Tuned` Monitoring
 
-### **1 Install `Netdata` on any Linux distribution:**
+### **Netdata Dashboard (Ansible-Managed)**
+**Netdata** provides real-time insights into **Tuned performance, CPU, RAM, disk, and network activity**.
+
+**To install and configure Netdata via Ansible:**  
 ```bash
-bash <(curl -Ss https://my-netdata.io/kickstart.sh)
+ansible-playbook site.yml --tags netdata
 ```
 
-### **2 Enable and start the `Netdata` service:**
-```bash
-sudo systemctl enable --now netdata
-```
-
-### **3 Access the graphical dashboard via browser:**
+**To access the dashboard via browser:**  
 ```bash
 http://<VM-IP>:19999
 ```
-**With this tool, you can monitor `Tuned` changes and their impact on system performance in real time.**
+
+### **Manual Monitoring of `Tuned` Performance**
+#### **Check Active Tuned Profile**
+```bash
+tuned-adm active
+```
+#### **View Applied Tuned Settings**
+```bash
+tuned-adm list
+```
+#### **Monitor `sysctl` Changes Made by `Tuned`**
+```bash
+sysctl -a | grep -E "swappiness|tcp_max_syn_backlog|netdev_max_backlog"
+```
+#### **Check Tuned Logs for Changes**
+```bash
+journalctl -u tuned --no-pager --lines 50
+```
+#### **Monitor System Performance with `dstat`**
+```bash
+dstat -tcmsdn --top-cpu --top-mem --top-io
+```
 
 ---
 
@@ -83,6 +111,21 @@ http://<VM-IP>:19999
 | **Message Brokers (Kafka, RabbitMQ, Redis)** | Increase connection limits, reduce TIME_WAIT for better performance |
 | **Containers (Docker, Kubernetes, OpenShift)** | Increase file descriptor limits, optimize keepalive intervals |
 | **Virtualization (KVM, OpenStack, OpenNebula)** | Increase dirty expiration, optimize memory paging |
+
+---
+
+## **Comparison: `Tuned` vs `sysctl`**
+| Feature | Tuned ✅ | sysctl ✅ |
+|---------|--------|---------|
+| **Applies dynamic optimizations** | ✅ Yes | ❌ No |
+| **Works with predefined profiles** | ✅ Yes | ❌ No |
+| **Handles service-specific tuning** | ✅ Yes | ✅ Yes (manual) |
+| **Can be automated with `systemd`** | ✅ Yes | ✅ Yes (but static) |
+| **Detects and adapts to changing workloads** | ✅ Yes | ❌ No |
+| **Direct kernel parameter adjustments** | ✅ Yes | ✅ Yes |
+| **Rollback capabilities** | ✅ Yes | ❌ No |
+
+**Conclusion:** `Tuned` provides **dynamic**, **adaptive** optimizations, while `sysctl` is **static** and best used for enforcing locked configurations.
 
 ---
 

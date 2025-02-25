@@ -1,0 +1,7 @@
+---
+- name: Deploy Tuned Optimizer and Netdata
+  hosts: all
+  become: yes
+  roles:
+    - tuned_optimizer
+

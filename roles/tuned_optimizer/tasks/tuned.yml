@@ -1,0 +1,21 @@
+---
+- name: Ensure Tuned is installed
+  package:
+    name: "{{ tuned_package }}"
+    state: present
+  when: ansible_os_family in ['RedHat', 'Debian']
+
+- name: Copy auto-tune script to /usr/local/bin
+  template:
+    src: auto-tune.sh.j2
+    dest: /usr/local/bin/auto-tune.sh
+    mode: '0755'
+
+- name: Run auto-tune script to apply Tuned optimizations
+  command: /usr/local/bin/auto-tune.sh
+  register: tuned_output
+  changed_when: "'System optimized' in tuned_output.stdout"
+
+- name: Debug Tuned output
+  debug:
+    msg: "{{ tuned_output.stdout }}"

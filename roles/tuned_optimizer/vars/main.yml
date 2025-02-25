@@ -1,0 +1,5 @@
+---
+sysctl_parameters:
+  vm_swappiness: 10
+  vm_dirty_ratio: 15
+  net_core_netdev_max_backlog: 5000

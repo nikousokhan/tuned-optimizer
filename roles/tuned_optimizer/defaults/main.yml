@@ -1,0 +1,3 @@
+---
+tuned_package: tuned
+netdata_install_url: "https://my-netdata.io/kickstart.sh"
