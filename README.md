@@ -8,6 +8,10 @@
 This role:
 - **Detects running services** (e.g., Redis, PostgreSQL, OpenStack, Kubernetes, etc.) and applies **service-specific tuning**.
 - **Differentiates between Bare-Metal and Virtual Machines**, ensuring the correct optimizations are applied.
+- **For Bare-Metal systems**, applies additional low-level optimizations such as:
+  - Setting **CPU governor to performance mode** for maximum performance.
+  - Configuring **I/O scheduler** for better disk performance.
+  - Applying **essential OS-level tunings** for stability and efficiency.
 - **Uses `Tuned` for dynamic optimizations** and **locks critical `sysctl` settings** to prevent unintended modifications.
 - **Validates `sysctl` changes** before and after applying configurations, ensuring consistency.
 - **Runs periodically via `systemd timer` to maintain optimal performance over time.**
@@ -20,6 +24,7 @@ This role:
 ✅ **Prevents conflicts between `Tuned` and `sysctl`** – Ensures stable and predictable performance.  
 ✅ **Enterprise-ready performance tuning** – Supports **bare-metal, virtualized, and cloud environments**.  
 ✅ **Optimized kernel settings for databases, networking, and containers**.  
+✅ **Bare-Metal specific tuning** – Configures **CPU governor, I/O scheduler, and critical OS-level tunings**.  
 ✅ **Live validation of system parameters** – Detects and alerts if `sysctl` changes unexpectedly.  
 ✅ **Automated execution via `systemd timer`** – Ensures periodic tuning without manual intervention.  
 
@@ -57,10 +62,11 @@ ansible-playbook site.yml --tags timer
 | Step | Action |
 |------|--------|
 | 1 | Detects if the system is **Bare-Metal or Virtual Machine** and applies the appropriate optimizations. |
-| 2 | Scans for critical workloads (Databases, Web Servers, Virtualization, etc.) and applies **custom tuning**. |
-| 3 | Configures and validates `Tuned` profiles to match active workloads. |
-| 4 | Adjusts `sysctl` parameters dynamically and locks critical settings. |
-| 5 | Enables a `systemd timer` to **automate periodic tuning** without user intervention. |
+| 2 | If Bare-Metal, applies **CPU governor, I/O scheduler, and essential OS-level tuning**. |
+| 3 | Scans for critical workloads (Databases, Web Servers, Virtualization, etc.) and applies **custom tuning**. |
+| 4 | Configures and validates `Tuned` profiles to match active workloads. |
+| 5 | Adjusts `sysctl` parameters dynamically and locks critical settings. |
+| 6 | Enables a `systemd timer` to **automate periodic tuning** without user intervention. |
 
 ---
 
@@ -144,4 +150,4 @@ For questions and support, please open an issue on **[GitHub Issues](https://git
 
 ---
 
-**Optimize your Linux system dynamically with Tuned Optimizer!**
+🚀 **Optimize your Linux system dynamically with Tuned Optimizer!**
