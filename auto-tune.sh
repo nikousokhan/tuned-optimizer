@@ -20,108 +20,118 @@ check_tuned() {
     echo "Tuned is installed."
 }
 
-# Function to enable and start tuned service
-enable_tuned() {
-    sudo systemctl enable --now tuned
-    echo "Tuned service enabled and started."
+# Function to check active Tuned profile and applied sysctl settings
+check_tuned_settings() {
+    echo "Checking Tuned active profile and applied sysctl settings..."
+    tuned-adm active | tee /tmp/tuned_current_settings.txt
+    sysctl -a | tee /tmp/sysctl_current_settings.txt
 }
 
-# Function to check if system is a Virtual Machine
-is_virtual_machine() {
-    if systemd-detect-virt | grep -qE 'kvm|vmware|hyperv|qemu|xen'; then
-        return 0  # VM detected
-    else
-        return 1  # Bare-metal detected
-    fi
-}
-
-# Function to optimize CPU governor (only for Bare-Metal)
-optimize_cpu_governor() {
-    if is_virtual_machine; then
-        echo "Skipping CPU governor tuning (Virtual Machine detected)"
-        return
-    fi
-    echo "Optimizing CPU governor..."
-    for CPU in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do
-        echo performance | sudo tee $CPU > /dev/null
-    done
-    echo "✅ CPU governor set to 'performance'"
-}
-
-# Function to optimize disk I/O scheduler (only for Bare-Metal or DB servers)
-optimize_disk_io() {
-    if is_virtual_machine && ! systemctl is-active --quiet mysql && ! systemctl is-active --quiet mariadb && ! systemctl is-active --quiet postgresql && ! systemctl is-active --quiet mongod; then
-        echo "⚠️ Skipping Disk I/O tuning (Virtual Machine detected and no DB services running)"
-        return
-    fi
-    echo "Optimizing Disk I/O Scheduler..."
-    for DEVICE in $(ls /sys/block/ | grep -E 'sd|nvme'); do
-        echo mq-deadline | sudo tee /sys/block/$DEVICE/queue/scheduler > /dev/null
-    done
-    echo "✅ Disk I/O Scheduler set to 'mq-deadline'"
-}
-
-# Function to apply best profile based on system type
-apply_best_profile() {
-    echo "Detecting best profile for your system..."
+# Function to detect important services
+check_services() {
+    SERVICES=("redis" "kafka" "rabbitmq" "mariadb" "mongod" "postgresql" "nginx" "haproxy" "docker" "kubelet" "openshift" "libvirtd" "openstack-nova-compute" "opennebula")
+    ACTIVE_SERVICES=()
     
-    if systemctl is-active --quiet docker || [ -d "/var/lib/docker" ]; then
-        PROFILE="throughput-performance"
-    elif systemctl is-active --quiet kubelet; then
-        PROFILE="throughput-performance"
-    elif systemctl is-active --quiet mysql || systemctl is-active --quiet mariadb || systemctl is-active --quiet postgresql || systemctl is-active --quiet mongod; then
-        PROFILE="latency-performance"
-    elif systemctl is-active --quiet libvirtd || systemctl is-active --quiet opennebula || systemctl is-active --quiet openstack-nova-compute; then
-        PROFILE="virtual-guest"
-    elif systemctl is-active --quiet networkd || [ -d "/etc/nginx" ] || systemctl is-active --quiet haproxy; then
-        PROFILE="network-latency"
-    elif systemctl is-active --quiet redis || systemctl is-active --quiet rabbitmq-server || systemctl is-active --quiet elasticsearch; then
-        PROFILE="latency-performance"
-    else
-        PROFILE="balanced"
-    fi
+    for SERVICE in "${SERVICES[@]}"; do
+        if systemctl is-active --quiet "$SERVICE" || pgrep -x "$SERVICE" > /dev/null; then
+            ACTIVE_SERVICES+=("$SERVICE")
+        fi
+    done
     
-    echo "Applying profile: $PROFILE"
-    sudo tuned-adm profile $PROFILE
+    echo "Active services: ${ACTIVE_SERVICES[*]}"
+    if [ ${#ACTIVE_SERVICES[@]} -eq 0 ]; then
+        echo "No critical services detected. Applying standard tuning..."
+        apply_standard_tuning
+    else
+        apply_service_specific_tuning "${ACTIVE_SERVICES[@]}"
+    fi
 }
 
-# Function to display system performance overview
-system_performance_overview() {
-    echo "ystem Performance Overview:"
-    echo "CPU Load: $(uptime)"
-    echo "Memory Usage: $(free -h)"
-    echo "Swap Usage: $(swapon --summary)"
-    echo "Disk Usage: $(df -h /)"
+# Function to apply standard tuning for general servers
+apply_standard_tuning() {
+    echo "Applying standard OS tuning..."
+    sudo tee /etc/sysctl.d/99-tuned-optimizer.conf > /dev/null <<EOL
+vm.swappiness = 10
+vm.dirty_ratio = 15
+vm.dirty_background_ratio = 5
+fs.file-max = 2097152
+net.core.rmem_max = 16777216
+net.core.wmem_max = 16777216
+net.core.netdev_max_backlog = 5000
+EOL
+    sudo sysctl --system
+    echo "Standard OS tuning applied."
 }
 
-# Function to optimize database settings
-optimize_database() {
-    echo "Database Performance Checks..."
-    if systemctl is-active --quiet mysql || systemctl is-active --quiet mariadb; then
-        echo "Optimizing MySQL/MariaDB settings..."
-        sudo mysql -e "SET GLOBAL innodb_buffer_pool_size = 1024*1024*1024;"
-    fi
+# Function to apply service-specific tuning
+apply_service_specific_tuning() {
+    echo "Applying service-specific tuning..."
+    sudo tee /etc/sysctl.d/99-tuned-optimizer.conf > /dev/null <<EOL
+$(generate_sysctl_config "$@")
+EOL
+    sudo sysctl --system
+    echo "Service-specific tuning applied."
+}
 
-    if systemctl is-active --quiet postgresql; then
-        echo "Optimizing PostgreSQL settings..."
-        sudo -u postgres psql -c "ALTER SYSTEM SET work_mem = '64MB';"
-    fi
+# Function to generate sysctl configuration dynamically
+generate_sysctl_config() {
+    CONFIG=""
+    for SERVICE in "$@"; do
+        case "$SERVICE" in
+            "redis"|"kafka"|"rabbitmq")
+                CONFIG+="
+net.core.somaxconn = 65535
+net.ipv4.tcp_max_syn_backlog = 8192
+net.ipv4.tcp_tw_reuse = 1
+"
+                ;;
+            "mariadb"|"mongod"|"postgresql")
+                CONFIG+="
+vm.swappiness = 1
+vm.dirty_ratio = 20
+vm.dirty_background_ratio = 10
+vm.transparent_hugepage.enabled = never
+vm.transparent_hugepage.defrag = never
+"
+                ;;
+            "nginx"|"haproxy")
+                CONFIG+="
+net.core.netdev_max_backlog = 10000
+net.ipv4.tcp_rmem = 4096 87380 16777216
+net.ipv4.tcp_wmem = 4096 65536 16777216
+net.ipv4.tcp_max_syn_backlog = 8192
+"
+                ;;
+            "docker"|"kubelet"|"openshift")
+                CONFIG+="
+fs.file-max = 4194304
+net.ipv4.tcp_keepalive_time = 600
+net.ipv4.tcp_keepalive_intvl = 60
+net.ipv4.tcp_keepalive_probes = 5
+"
+                ;;
+            "libvirtd"|"openstack-nova-compute"|"opennebula")
+                CONFIG+="
+vm.dirty_expire_centisecs = 500
+vm.dirty_ratio = 20
+fs.file-max = 2097152
+"
+                ;;
+        esac
+    done
+    echo "$CONFIG"
+}
 
-    if systemctl is-active --quiet mongod; then
-        echo "Optimizing MongoDB settings..."
-        sudo sed -i 's/#wiredTigerCacheSizeGB:/wiredTigerCacheSizeGB: 1/' /etc/mongod.conf
-        sudo systemctl restart mongod
-    fi
+# Function to validate sysctl changes
+validate_sysctl_changes() {
+    echo "Validating sysctl changes..."
+    diff /tmp/sysctl_current_settings.txt <(sysctl -a) || echo "⚠️ Some sysctl settings may have changed unexpectedly!"
 }
 
 # Main execution
 check_tuned
-enable_tuned
-list_profiles
-optimize_cpu_governor
-optimize_disk_io
-system_performance_overview
-apply_best_profile
-optimize_database
+check_tuned_settings
+check_services
+validate_sysctl_changes
 
-echo "System optimized with Tuned!"
+echo "System optimized dynamically based on active services!"

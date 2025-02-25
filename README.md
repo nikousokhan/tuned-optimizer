@@ -2,88 +2,66 @@
 
 ![Tuned Optimizer](https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Tuned_Logo.svg/120px-Tuned_Logo.svg.png)
 
-## 🚀 Overview
-**Tuned Optimizer** is an enterprise-grade performance tuning script for **Linux SysAdmins & DevOps Engineers**. It automates system performance optimization by selecting the best **Tuned profile** based on workload type while ensuring proper configuration of **CPU governor, disk I/O scheduler, and database performance tuning**. It also distinguishes between **Bare-Metal and Virtual Machines**, applying optimizations accordingly.
+## Overview
+**Tuned Optimizer** is an advanced **Linux performance tuning automation tool** designed for **SysAdmins & DevOps Engineers**. It dynamically optimizes system settings using **Tuned & sysctl**, ensuring optimal performance for various workloads, including **databases, web servers, virtualization, and containerized environments**.
+
+This script:
+- **Detects running services** (e.g., Redis, PostgreSQL, OpenStack, Kubernetes, etc.) and applies **service-specific tuning**.
+- **Uses `Tuned` for dynamic optimizations** and **locks critical `sysctl` settings** to prevent unintended modifications.
+- **Validates `sysctl` changes** before and after applying configurations, ensuring consistency.
 
 ---
 
-## 🎯 Features
-✅ **Automatic detection of system type (Bare-Metal vs. Virtual Machine)**  
-✅ **Intelligent selection of Tuned profiles based on workload**  
-✅ **Optimized CPU governor settings (only for Bare-Metal servers)**  
-✅ **Automatic disk I/O scheduler tuning (except for virtual machines without DB services)**  
-✅ **Enhanced database performance for MySQL, PostgreSQL, and MongoDB**  
-✅ **Works seamlessly on RHEL, CentOS, Fedora, Ubuntu, and Debian**  
-✅ **Lightweight, no dependencies beyond Tuned & basic system utilities**  
+## Key Features
+ **Automatic service detection** – Applies optimizations based on running workloads.
+ **Prevents conflicts between `Tuned` and `sysctl`** – Ensures stable and predictable performance.
+ **Enterprise-ready performance tuning** – Supports **bare-metal, virtualized, and cloud environments**.
+ **Optimized kernel settings for databases, networking, and containers**.
+ **Live validation of system parameters** – Detects and alerts if `sysctl` changes unexpectedly.
 
 ---
 
-## 📦 Installation
-### **1️⃣ Clone the repository**
+## 📦 Installation & Usage
+
+### **1 Clone the repository**
 ```bash
 git clone https://github.com/your-repo/tuned-optimizer.git
 cd tuned-optimizer
 ```
 
-### **2️⃣ Run the installation script**
-```bash
-chmod +x install.sh
-./install.sh
-```
-
-### **3️⃣ Execute the auto-tune script**
+### **2 Run the script**
 ```bash
 chmod +x auto-tune.sh
 ./auto-tune.sh
 ```
 
----
-
-## 🔧 Usage
-### **List available Tuned profiles**
+### **3️ Verify applied settings**
 ```bash
-tuned-adm list
-```
-
-### **Apply a specific profile manually**
-```bash
-sudo tuned-adm profile throughput-performance
-```
-
-### **Automatically optimize your system**
-```bash
-./auto-tune.sh
+tuned-adm active
+sysctl -a | grep -E "swappiness|tcp_max_syn_backlog|netdev_max_backlog"
 ```
 
 ---
 
-## 🔍 How It Works
-1️⃣ **Detects if the system is running on Bare-Metal or a Virtual Machine**
-- If **Bare-Metal**, applies **CPU governor** and **I/O scheduler tuning**.
-- If **Virtual Machine**, skips OS-level tuning unless a database is running.
-
-2️⃣ **Scans active workloads**
-- **Database servers (MySQL, PostgreSQL, MongoDB)** → Applies `latency-performance` profile.
-- **Containers (Docker, Kubernetes)** → Applies `throughput-performance` profile.
-- **Virtualized Environments (OpenStack, OpenNebula, KVM)** → Applies `virtual-guest` profile.
-- **Network-focused workloads (NGINX, HAProxy, Redis, RabbitMQ)** → Applies `network-latency` profile.
-
-3️⃣ **Optimizes Database Performance** (if applicable)
-- Increases `innodb_buffer_pool_size` for MySQL/MariaDB.
-- Adjusts `work_mem` for PostgreSQL.
-- Modifies MongoDB cache size for better efficiency.
+## 🔧 How It Works
+| Step | Action |
+|------|--------|
+| 1️⃣ | Detects active services using `systemctl` and `pgrep`. |
+| 2️⃣ | If no critical services are found, applies **standard system tuning**. |
+| 3️⃣ | If services are detected, applies **custom `sysctl` configurations** for each workload. |
+| 4️⃣ | Checks and validates `Tuned` profiles to ensure settings match active workloads. |
+| 5️⃣ | Verifies `sysctl` settings after applying changes to prevent unintended modifications. |
 
 ---
 
-## 🛠 Supported Tuned Profiles
-| Profile Name               | Use Case |
-|----------------------------|------------------------------------------------|
-| `balanced`                 | General-purpose optimization                 |
-| `throughput-performance`   | High-performance compute & containerized apps |
-| `latency-performance`      | Low-latency databases & real-time apps       |
-| `network-latency`         | Network-sensitive applications (NGINX, HAProxy) |
-| `virtual-guest`           | Virtualized environments (KVM, OpenStack, etc.) |
-| `powersave`               | Energy efficiency & low-power servers         |
+## Service-Specific Optimizations
+| Service Type  | Applied Optimizations |
+|--------------|----------------------|
+| **Databases (MySQL, PostgreSQL, MongoDB, MariaDB)** | Low swappiness, disable THP, increase dirty ratio for better caching |
+| **Web Servers (NGINX, HAProxy)** | Increase backlog queue, optimize TCP buffers for high concurrency |
+| **Message Brokers (Kafka, RabbitMQ, Redis)** | Increase connection limits, reduce TIME_WAIT for better performance |
+| **Containers (Docker, Kubernetes, OpenShift)** | Increase file descriptor limits, optimize keepalive intervals |
+| **Virtualization (KVM, OpenStack, OpenNebula)** | Increase dirty expiration, optimize memory paging |
 
 ---
 
@@ -92,14 +70,14 @@ This project is licensed under the **MIT License**. See the `LICENSE` file for d
 
 ---
 
-## 📢 Contributing
+## Contributing
 We welcome contributions! Feel free to **fork the repo, submit pull requests, or open issues** for feature requests.
 
 ---
 
-## 📞 Contact & Support
+## Contact & Support
 For questions and support, please open an issue on **[GitHub Issues](https://github.com/your-repo/tuned-optimizer/issues)** or reach out via **LinkedIn**.
 
 ---
 
-🚀 **Maximize your Linux performance with Tuned Optimizer!**
+**Optimize your Linux system dynamically with Tuned Optimizer!**
