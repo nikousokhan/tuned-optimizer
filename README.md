@@ -43,14 +43,14 @@ sysctl -a | grep -E "swappiness|tcp_max_syn_backlog|netdev_max_backlog"
 
 ---
 
-## 🔧 How It Works
+## How It Works
 | Step | Action |
 |------|--------|
-| 1️⃣ | Detects active services using `systemctl` and `pgrep`. |
-| 2️⃣ | If no critical services are found, applies **standard system tuning**. |
-| 3️⃣ | If services are detected, applies **custom `sysctl` configurations** for each workload. |
-| 4️⃣ | Checks and validates `Tuned` profiles to ensure settings match active workloads. |
-| 5️⃣ | Verifies `sysctl` settings after applying changes to prevent unintended modifications. |
+| 1 | Detects active services using `systemctl` and `pgrep`. |
+| 2 | If no critical services are found, applies **standard system tuning**. |
+| 3 | If services are detected, applies **custom `sysctl` configurations** for each workload. |
+| 4 | Checks and validates `Tuned` profiles to ensure settings match active workloads. |
+| 5 | Verifies `sysctl` settings after applying changes to prevent unintended modifications. |
 
 ---
 
