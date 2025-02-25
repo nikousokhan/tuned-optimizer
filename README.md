@@ -21,7 +21,7 @@ This script:
 
 ---
 
-## 📦 Installation & Usage
+## Installation & Usage
 
 ### **1 Clone the repository**
 ```bash
@@ -35,7 +35,7 @@ chmod +x auto-tune.sh
 ./auto-tune.sh
 ```
 
-### **3️ Verify applied settings**
+### **3 Verify applied settings**
 ```bash
 tuned-adm active
 sysctl -a | grep -E "swappiness|tcp_max_syn_backlog|netdev_max_backlog"
