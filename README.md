@@ -54,6 +54,27 @@ sysctl -a | grep -E "swappiness|tcp_max_syn_backlog|netdev_max_backlog"
 
 ---
 
+## Professional Monitoring with Netdata
+**If you need real-time graphical monitoring, `Netdata` is an excellent tool that provides detailed insights into `Tuned`, CPU, RAM, disk, network usage, and kernel settings.**
+
+### **1 Install `Netdata` on any Linux distribution:**
+```bash
+bash <(curl -Ss https://my-netdata.io/kickstart.sh)
+```
+
+### **2 Enable and start the `Netdata` service:**
+```bash
+sudo systemctl enable --now netdata
+```
+
+### **3 Access the graphical dashboard via browser:**
+```bash
+http://<VM-IP>:19999
+```
+**With this tool, you can monitor `Tuned` changes and their impact on system performance in real time.**
+
+---
+
 ## Service-Specific Optimizations
 | Service Type  | Applied Optimizations |
 |--------------|----------------------|
