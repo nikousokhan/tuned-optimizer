@@ -5,9 +5,10 @@
     state: present
   when: ansible_os_family in ['RedHat', 'Debian']
 
+
 - name: Copy auto-tune script to /usr/local/bin
-  template:
-    src: auto-tune.sh.j2
+  ansible.builtin.copy:
+    src: auto-tune.sh
     dest: /usr/local/bin/auto-tune.sh
     mode: '0755'
 

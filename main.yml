@@ -5,3 +5,9 @@
   roles:
     - tuned_optimizer
 
+# - name: Initial Tasks to provision a server
+#   hosts: all
+#   become: true
+#   gather_facts: true
+#   roles:
+#     - {role: tuned-optimizer, tags: "tuned,netdata,timer"}
