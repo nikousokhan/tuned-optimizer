@@ -1,26 +1,23 @@
 ---
 - name: Copy tuned-optimizer service file
-  template:
+  ansible.builtin.template:
     src: tuned-optimizer.service.j2
     dest: /etc/systemd/system/tuned-optimizer.service
-    mode: "0644"
-  
+    mode: "0644"  
 - name: Copy tuned-optimizer timer file
-  template:
+  ansible.builtin.template:
     src: tuned-optimizer.timer.j2
     dest: /etc/systemd/system/tuned-optimizer.timer
     mode: "0644"
-
 - name: Reload systemd daemon
-  command: systemctl daemon-reload
-
+  ansible.builtin.systemd:
+    daemon_reload: true
 - name: Enable and start tuned-optimizer.timer
-  systemd:
+  ansible.builtin.systemd:
     name: tuned-optimizer.timer
-    enabled: yes
+    enabled: true
     state: started
-
 - name: Ensure tuned-optimizer service is not running (only triggered by timer)
-  systemd:
+  ansible.builtin.systemd:
     name: tuned-optimizer.service
     state: stopped

@@ -2,11 +2,9 @@
 - name: Include Tuned installation and configuration tasks
   include_tasks: tuned.yml
   tags: tuned
-
 - name: Include Systemd Timer tasks
   include_tasks: timer.yml
   tags: timer
-
 - name: Include Netdata installation and configuration tasks
   include_tasks: netdata.yml
   tags: netdata

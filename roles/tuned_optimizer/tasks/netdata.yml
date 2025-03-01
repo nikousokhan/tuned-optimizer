@@ -1,17 +1,15 @@
 ---
 - name: Install Netdata using kickstart script
-  shell: bash <(curl -Ss {{ netdata_install_url }})
+  ansible.builtin.shell: bash <(curl -Ss {{ netdata_install_url }})
   args:
     creates: /etc/netdata
   register: netdata_install
   changed_when: netdata_install.rc == 0
-
 - name: Ensure Netdata service is enabled and started
-  service:
+  ansible.builtin.service:
     name: netdata
     state: started
-    enabled: yes
-
+    enabled: true
 - name: Display Netdata dashboard URL
-  debug:
+  ansible.builtin.debug:
     msg: "Netdata dashboard is available at http://{{ ansible_default_ipv4.address }}:19999"
