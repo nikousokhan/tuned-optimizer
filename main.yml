@@ -3,4 +3,4 @@
   hosts: all
   become: yes
   roles:
-    - tuned_optimizer
+    - { role: tuned_optimizer, tags: "tuned,timer,netdata" }

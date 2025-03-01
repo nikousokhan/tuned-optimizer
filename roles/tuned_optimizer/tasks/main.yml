@@ -1,10 +1,10 @@
 ---
 - name: Include Tuned installation and configuration tasks
   include_tasks: tuned.yml
-  tags: tuned
+  when: "'tuned' in ansible_run_tags"
 - name: Include Systemd Timer tasks
   include_tasks: timer.yml
-  tags: timer
+  when: "'timer' in ansible_run_tags"
 - name: Include Netdata installation and configuration tasks
   include_tasks: netdata.yml
-  tags: netdata
+  when: "'netdata' in ansible_run_tags"
