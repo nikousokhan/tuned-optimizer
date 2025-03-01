@@ -1,6 +1,6 @@
 ---
 - name: Ensure Tuned is installed
-  ansible.builtin.package:
+  ansible.legacy.package:
     name: "{{ tuned_package }}"
     state: present
   when: ansible_os_family in ['RedHat', 'Debian']
