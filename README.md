@@ -5,7 +5,7 @@
 ## Overview
 **Tuned Optimizer** is an advanced **Linux performance tuning automation tool** designed for **SysAdmins & DevOps Engineers**. It dynamically optimizes system settings using **Tuned & sysctl**, ensuring optimal performance for various workloads, including **databases, web servers, virtualization, and containerized environments**.
 
-This role:
+### This tool:
 - **Detects running services** (e.g., Redis, PostgreSQL, OpenStack, Kubernetes, etc.) and applies **service-specific tuning**.
 - **Differentiates between Bare-Metal and Virtual Machines**, ensuring the correct optimizations are applied.
 - **For Bare-Metal systems**, applies additional low-level optimizations such as:
@@ -19,26 +19,26 @@ This role:
 ---
 
 ## Key Features
-✅ **Automatic detection of Bare-Metal vs Virtual Machine** – Ensures correct optimizations per environment.  
-✅ **Automatic service detection** – Applies optimizations based on running workloads.  
-✅ **Prevents conflicts between `Tuned` and `sysctl`** – Ensures stable and predictable performance.  
-✅ **Enterprise-ready performance tuning** – Supports **bare-metal, virtualized, and cloud environments**.  
-✅ **Optimized kernel settings for databases, networking, and containers**.  
-✅ **Bare-Metal specific tuning** – Configures **CPU governor, I/O scheduler, and critical OS-level tunings**.  
-✅ **Live validation of system parameters** – Detects and alerts if `sysctl` changes unexpectedly.  
-✅ **Automated execution via `systemd timer`** – Ensures periodic tuning without manual intervention.  
+ **Automatic detection of Bare-Metal vs Virtual Machine** – Ensures correct optimizations per environment.  
+ **Automatic service detection** – Applies optimizations based on running workloads.  
+ **Prevents conflicts between `Tuned` and `sysctl`** – Ensures stable and predictable performance.  
+ **Enterprise-ready performance tuning** – Supports **bare-metal, virtualized, and cloud environments**.  
+ **Optimized kernel settings for databases, networking, and containers**.  
+ **Bare-Metal specific tuning** – Configures **CPU governor, I/O scheduler, and critical OS-level tunings**.  
+ **Live validation of system parameters** – Detects and alerts if `sysctl` changes unexpectedly.  
+ **Automated execution via `systemd timer`** – Ensures periodic tuning without manual intervention.  
 
 ---
 
 ## Installation & Usage (Ansible-Based)
 
-### **1 Clone the repository**
+### **1. Clone the repository**
 ```bash
-git clone https://github.com/your-repo/tuned-optimizer.git
+git clone https://github.com/nikousokhan/tuned-optimizer.git
 cd tuned-optimizer
 ```
 
-### **2 Run the Ansible Playbook**
+### **2. Run the Ansible Playbook**
 ```bash
 ansible-playbook site.yml --tags all
 ```
@@ -67,45 +67,6 @@ ansible-playbook site.yml --tags timer
 | 4 | Configures and validates `Tuned` profiles to match active workloads. |
 | 5 | Adjusts `sysctl` parameters dynamically and locks critical settings. |
 | 6 | Enables a `systemd timer` to **automate periodic tuning** without user intervention. |
-
----
-
-## Professional Monitoring with Netdata & Manual `Tuned` Monitoring
-
-### **Netdata Dashboard (Ansible-Managed)**
-**Netdata** provides real-time insights into **Tuned performance, CPU, RAM, disk, and network activity**.
-
-**To install and configure Netdata via Ansible:**  
-```bash
-ansible-playbook site.yml --tags netdata
-```
-
-**To access the dashboard via browser:**  
-```bash
-http://<VM-IP>:19999
-```
-
-### **Manual Monitoring of `Tuned` Performance**
-#### **Check Active Tuned Profile**
-```bash
-tuned-adm active
-```
-#### **View Applied Tuned Settings**
-```bash
-tuned-adm list
-```
-#### **Monitor `sysctl` Changes Made by `Tuned`**
-```bash
-sysctl -a | grep -E "swappiness|tcp_max_syn_backlog|netdev_max_backlog"
-```
-#### **Check Tuned Logs for Changes**
-```bash
-journalctl -u tuned --no-pager --lines 50
-```
-#### **Monitor System Performance with `dstat`**
-```bash
-dstat -tcmsdn --top-cpu --top-mem --top-io
-```
 
 ---
 
@@ -146,8 +107,8 @@ We welcome contributions! Feel free to **fork the repo, submit pull requests, or
 ---
 
 ## Contact & Support
-For questions and support, please open an issue on **[GitHub Issues](https://github.com/your-repo/tuned-optimizer/issues)** or reach out via **LinkedIn**.
+For questions and support, please open an issue on **[GitHub Issues](https://github.com/nikousokhan/tuned-optimizer/issues)** or reach out via **LinkedIn**.
 
 ---
 
-🚀 **Optimize your Linux system dynamically with Tuned Optimizer!**
+**Optimize your Linux system dynamically with Tuned Optimizer!**
